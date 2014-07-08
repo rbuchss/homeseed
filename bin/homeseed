@@ -1,0 +1,19 @@
+#!/usr/bin/env ruby
+
+require_relative '../lib/homeseed'
+require 'thor'
+
+module Homeseed
+  class HomeseedCliApp < Thor
+    desc 'plant [-s <servers>] [-f <files>] [-u <user>]', ''
+    option :servers, required: true, aliases: '-s', desc: 'ssh hostname(s)'
+    option :files, required: true, aliases: '-f', desc: 'yml command file(s) to exec'
+    option :user, aliases: '-u', desc: 'ssh username', default: ENV['USER']
+    method_option :has_password, aliases: '-p', type: :boolean, default: false, desc: 'has password; no ssh keys'
+    def plant
+      connection = Homeseed::Connection.new options
+      connection.ssh_exec
+    end
+  end
+  HomeseedCliApp.start
+end
