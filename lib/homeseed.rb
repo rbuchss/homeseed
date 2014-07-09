@@ -15,18 +15,22 @@ module Homeseed
     end
 
     def initialize(params={})
-      raise unless params[:servers] and params[:files] and params[:user]
+      raise unless params[:servers] and (params[:files] or params[:command]) and params[:user]
       @servers = params[:servers].split(',')
-      @files = params[:files].split(',')
       @user = params[:user]
       @has_password = params[:password]
 
-      @flat_commands = ''
-      @files.each do |file|
-        yml_commands = YAML.load_file(file)
-        commands = []
-        self.process_hash(commands, '', yml_commands)
-        @flat_commands += commands.join('; ') + ';'
+      if params[:command]
+        @flat_commands = params[:command]
+      else
+        @files = params[:files].split(',')
+        @flat_commands = ''
+        @files.each do |file|
+          yml_commands = YAML.load_file(file)
+          commands = []
+          self.process_hash(commands, '', yml_commands)
+          @flat_commands += commands.join('; ') + ';'
+        end
       end
     end
 
