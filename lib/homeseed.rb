@@ -49,10 +49,11 @@ module Homeseed
     end
 
     def ssh_exec
-      @servers.each do |server|
+      Hash[@servers.map do |server|
         logger.info "ssh #{@user}@#{server} exec: #{@flat_commands}"
 
         password = @has_password ? ask("Enter password: ") { |q| q.echo = "*" } : ''
+        exit_status = 0
         Net::SSH.start(server, @user, password: password) do |ssh|
           ssh.open_channel do |channel|
             channel.exec("bash -l") do |ch, success|
@@ -70,11 +71,16 @@ module Homeseed
                   logger.error data_line unless data_line == ''
                 end
               end
+
+              ch.on_request("exit-status") do |ch,data|
+                exit_status = data.read_long
+              end
               ch.send_data "exit\n"
             end
           end
         end
-      end
+        [server, { exit_status: exit_status }]
+      end]
     end
   end
 end
