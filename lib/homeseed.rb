@@ -1,7 +1,6 @@
 require "homeseed/version"
 require 'logger'
 require 'net/ssh'
-require 'highline/import'
 require 'yaml'
 
 module Homeseed
@@ -18,7 +17,7 @@ module Homeseed
       raise unless params[:servers] and (params[:files] or params[:command]) and params[:user]
       @servers = params[:servers].split(',')
       @user = params[:user]
-      @has_password = params[:password]
+      @password = params[:password] || ''
 
       if params[:command]
         @flat_commands = params[:command]
@@ -52,27 +51,26 @@ module Homeseed
       Hash[@servers.map do |server|
         logger.info "ssh #{@user}@#{server} exec: #{@flat_commands}"
 
-        password = @has_password ? ask("Enter password: ") { |q| q.echo = "*" } : ''
         exit_status = 0
-        Net::SSH.start(server, @user, password: password) do |ssh|
+        Net::SSH.start(server, @user, password: @password) do |ssh|
           ssh.open_channel do |channel|
-            channel.exec("bash -l") do |ch, success|
+            channel.exec("bash -l") do |ch,success|
               ch.send_data "#{@flat_commands}\n"
-              ch.on_data do |c, data|
+              ch.on_data do |c,data|
                 data_lines = data.split(/[\r,\n]/)
                 data_lines.each do |data_line|
                   logger.info data_line unless data_line == ''
                 end
               end
 
-              ch.on_extended_data do |c, type, data|
+              ch.on_extended_data do |c,type,data|
                 data_lines = data.split(/[\r,\n]/)
                 data_lines.each do |data_line|
                   logger.error data_line unless data_line == ''
                 end
               end
 
-              ch.on_request("exit-status") do |ch,data|
+              ch.on_request("exit-status") do |c,data|
                 exit_status = data.read_long
               end
               ch.send_data "exit\n"

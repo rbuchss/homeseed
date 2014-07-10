@@ -5,13 +5,12 @@ require 'thor'
 
 module Homeseed
   class HomeseedCliApp < Thor
-    desc 'plant [-s <servers>] [-e <command> or -f <files>] [-u <user>]', ''
-    option :servers, required: true, aliases: '-s', desc: 'ssh hostname(s)'
-    option :command, aliases: '-e', desc: 'bash command to exec'
-    option :files, aliases: '-f', desc: 'yml command file(s) to exec'
-    option :user, aliases: '-u', desc: 'ssh username', default: ENV['USER']
-    method_option :has_password, aliases: '-p', type: :boolean, default: false, desc: 'has password; no ssh keys'
-    def plant
+    desc 'exec [-s <servers>] [-e <command> or -f <files>] [-u <user>]', 'exec in line bash commands or bash commands from yml file on remote server'
+    method_option :servers, required: true, aliases: '-s', desc: 'ssh hostname(s)'
+    method_option :command, aliases: '-e', desc: 'bash command to exec'
+    method_option :files, aliases: '-f', desc: 'yml command file(s) to exec'
+    method_option :user, aliases: '-u', desc: 'ssh username', default: ENV['USER']
+    def exec
       connection = Homeseed::Connection.new options
       connection.ssh_exec
     end
