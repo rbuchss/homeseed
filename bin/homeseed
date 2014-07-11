@@ -5,13 +5,38 @@ require 'thor'
 
 module Homeseed
   class HomeseedCliApp < Thor
-    desc 'exec [-s <servers>] [-e <command> or -f <files>] [-u <user>]', 'exec in line bash commands or bash commands from yml file on remote server'
-    method_option :servers, required: true, aliases: '-s', desc: 'ssh hostname(s)'
+    desc 'exec [-e <command> or -f <files>] [-u <user>]',
+      'executes bash login session(s) on remote servers to run inline bash commands or bash commands from yml file'
+    method_option :servers, required: true, aliases: '-s', desc: 'ssh hostname(s); csv if multiple'
     method_option :command, aliases: '-e', desc: 'bash command to exec'
-    method_option :files, aliases: '-f', desc: 'yml command file(s) to exec'
+    method_option :files, aliases: '-f', desc: 'yml bash command file(s) to exec'
     method_option :user, aliases: '-u', desc: 'ssh username', default: ENV['USER']
     def exec
       connection = Homeseed::Connection.new options
+      connection.ssh_exec
+    end
+
+    desc 'plant [-u <user>]',
+      'installs homeshick and then dot profile based on localhost $HOME/.homeseed.yml'
+    method_option :servers, required: true, aliases: '-s', desc: 'ssh hostname(s); csv if multiple'
+    method_option :user, aliases: '-u', desc: 'ssh username', default: ENV['USER']
+    def plant
+      config_files = %w(homeshick-prep.yml homeshick-install.yml homeshick-source.yml)
+      files = config_files.map { |file| File.expand_path("../../config/#{file}", __FILE__) }
+      files << File.expand_path('.homeseed.yml', ENV['HOME'])
+      connection = Homeseed::Connection.new options.merge(files: files.join(','))
+      connection.ssh_exec
+    end
+
+    desc 'update [-u <user>]',
+      'updates dot profile based on localhost $HOME/.homeup.yml'
+    method_option :servers, required: true, aliases: '-s', desc: 'ssh hostname(s); csv if multiple'
+    method_option :user, aliases: '-u', desc: 'ssh username', default: ENV['USER']
+    def update
+      config_files = %w(homeshick-source.yml)
+      files = config_files.map { |file| File.expand_path("../../config/#{file}", __FILE__) }
+      files << File.expand_path('.homeup.yml', ENV['HOME'])
+      connection = Homeseed::Connection.new options.merge(files: files.join(','))
       connection.ssh_exec
     end
   end

@@ -1,6 +1,7 @@
 # Homeseed
 
-Bash command flattener for remote ssh exec
+CLI for config/dot-profile deployments
+also is a bash login session command flattener for remote ssh exec
 
 ## Installation
 
@@ -18,16 +19,45 @@ Or install it yourself as:
 
 ## Usage
 
-Examples
+homeseed commands
+```
+➜ homeseed help
+Commands:
+  homeseed exec [-e <command> or -f <files>] [-u <user>] -s, --servers=SERVERS  # executes bash login session(s) on remote servers to run inline bash commands or bash commands from yml file
+  homeseed help [COMMAND]                                                       # Describe available commands or one specific command
+  homeseed plant [-u <user>] -s, --servers=SERVERS                              # installs homeshick and then dot profile based on localhost $HOME/.homeseed.yml
+  homeseed update [-u <user>] -s, --servers=SERVERS                             # updates dot profile based on localhost $HOME/.homeup.yml
+```
 
-to install dot profile on server list run
+to install dot profile on csv server list run; uses $HOME/.homeseed.yml
 ```
-homeseed plant -s blackberry,blueberry,raspberry -f config/shick-seed.yml
+homeseed plant -s blackberry,blueberry,raspberry
 ```
 
-to update run
+ex $HOME/.homeseed.yml
 ```
-homeseed plant -s soho -f config/shick-update.yml
+homeshick:
+  clone:
+    - https://github.com/rbuchss/terminator.git --batch
+    - https://github.com/rbuchss/vim-4-eva.git --batch
+  link:
+    - terminator --force
+    - vim-4-eva --force
+```
+
+to update run; uses $HOME/.homeup.yml
+```
+homeseed update -s soho
+```
+
+ex $HOME/.homeup.yml
+```
+homeshick:
+  pull:
+    - --force --batch
+  link:
+    - terminator --force
+    - vim-4-eva --force
 ```
 
 ## Contributing

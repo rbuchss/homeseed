@@ -14,7 +14,7 @@ module Homeseed
     end
 
     def initialize(params={})
-      raise unless params[:servers] and (params[:files] or params[:command]) and params[:user]
+      raise unless params[:servers] and (params[:command] or params[:files]) and params[:user]
       @servers = params[:servers].split(',')
       @user = params[:user]
       @password = params[:password] || ''

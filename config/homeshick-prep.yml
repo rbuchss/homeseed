@@ -1,0 +1,3 @@
+rm:
+  - -rf $HOME/.homesick/repos
+  - -rf $HOME/git
