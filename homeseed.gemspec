@@ -20,7 +20,7 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency "bundler", "~> 1.3"
   spec.add_development_dependency "rake", '~> 10.3'
-  spec.add_dependency 'net-ssh', '~> 2.9'
-  spec.add_dependency 'highline', '~> 1.6'
+  spec.add_dependency 'net-ssh', '~> 2.6'
+  spec.add_dependency 'net-scp', '~> 1.1'
   spec.add_dependency 'thor', '~> 0.19'
 end

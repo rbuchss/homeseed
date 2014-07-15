@@ -39,6 +39,17 @@ module Homeseed
       connection = Homeseed::Connection.new options.merge(files: files.join(','))
       connection.ssh_exec
     end
+
+    desc 'upload [-f <upload_files>] [-p <remote_path>] [-u <user>]',
+      'scp uploads file(s) to remote servers'
+    method_option :servers, required: true, aliases: '-s', desc: 'ssh hostname(s); csv if multiple'
+    method_option :upload_files, aliases: '-f', desc: 'file(s) to upload to server(s)'
+    method_option :remote_path, aliases: '-p', desc: 'path to upload to server(s)'
+    method_option :user, aliases: '-u', desc: 'ssh username', default: ENV['USER']
+    def upload
+      connection = Homeseed::Connection.new options
+      connection.scp_upload
+    end
   end
   HomeseedCliApp.start
 end

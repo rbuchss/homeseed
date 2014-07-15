@@ -1,12 +1,18 @@
 require "homeseed/version"
 require 'logger'
 require 'net/ssh'
+require 'net/scp'
 require 'yaml'
 
 module Homeseed
   class Connection
     def self.logger
       @logger ||= Logger.new(STDOUT)
+      original_formatter = Logger::Formatter.new
+      @logger.formatter = proc { |severity, datetime, progname, msg|
+        original_formatter.call(severity, datetime, progname, msg.dump)
+      }
+      @logger
     end
 
     def logger
@@ -14,14 +20,14 @@ module Homeseed
     end
 
     def initialize(params={})
-      raise unless params[:servers] and (params[:command] or params[:files]) and params[:user]
+      raise 'servers and/or user not specified' unless params[:servers] and params[:user]
       @servers = params[:servers].split(',')
       @user = params[:user]
       @password = params[:password] || ''
 
       if params[:command]
         @flat_commands = params[:command]
-      else
+      elsif params[:files]
         @files = params[:files].split(',')
         @flat_commands = ''
         @files.each do |file|
@@ -30,6 +36,11 @@ module Homeseed
           self.process_hash(commands, '', yml_commands)
           @flat_commands += commands.join('; ') + ';'
         end
+      elsif params[:upload_files]
+        @remote_path = params[:remote_path] || '/tmp/'
+        @upload_files = params[:upload_files].split(',')
+      else
+        raise 'ERROR command, files or upload_files not specified'
       end
     end
 
@@ -79,6 +90,17 @@ module Homeseed
         end
         [server, { exit_status: exit_status }]
       end]
+    end
+
+    def scp_upload
+      @servers.each do |server|
+        @upload_files.each do |upload_file|
+          logger.info "scp #{upload_file} #{@user}@#{server}:#{@remote_path}"
+          Net::SCP.start(server, @user) do |scp|
+            scp.upload!(upload_file, @remote_path)
+          end
+        end
+      end
     end
   end
 end
