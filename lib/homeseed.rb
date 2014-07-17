@@ -3,27 +3,18 @@ require 'logger'
 require 'net/ssh'
 require 'net/scp'
 require 'yaml'
+require_relative './logging'
 
 module Homeseed
   class Connection
-    def self.logger
-      @logger ||= Logger.new(STDOUT)
-      original_formatter = Logger::Formatter.new
-      @logger.formatter = proc { |severity, datetime, progname, msg|
-        original_formatter.call(severity, datetime, progname, msg.dump)
-      }
-      @logger
-    end
-
-    def logger
-      self.class.logger
-    end
+    include Logging
 
     def initialize(params={})
       raise 'servers and/or user not specified' unless params[:servers] and params[:user]
       @servers = params[:servers].split(',')
       @user = params[:user]
       @password = params[:password] || ''
+      logger.level = params[:logger_level] || Logger::INFO
 
       if params[:command]
         @flat_commands = params[:command]
@@ -77,7 +68,13 @@ module Homeseed
               ch.on_extended_data do |c,type,data|
                 data_lines = data.split(/[\r,\n]/)
                 data_lines.each do |data_line|
-                  logger.error data_line unless data_line == ''
+                  unless data_line == ''
+                    if data_line.match(/error|failed/i)
+                      logger.error data_line
+                    else
+                      logger.info data_line
+                    end
+                  end
                 end
               end
 
@@ -95,9 +92,12 @@ module Homeseed
     def scp_upload
       @servers.each do |server|
         @upload_files.each do |upload_file|
-          logger.info "scp #{upload_file} #{@user}@#{server}:#{@remote_path}"
-          Net::SCP.start(server, @user) do |scp|
-            scp.upload!(upload_file, @remote_path)
+          logger.info "starting scp #{upload_file} #{@user}@#{server}:#{@remote_path}"
+          begin
+            Net::SCP.start(server, @user) { |scp| scp.upload!(upload_file, @remote_path) }
+            logger.info "finished scp #{upload_file} #{@user}@#{server}:#{@remote_path}"
+          rescue => err
+            logger.error "scp FAILED #{err}"
           end
         end
       end
