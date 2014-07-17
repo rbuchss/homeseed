@@ -14,7 +14,12 @@ module Homeseed
       @servers = params[:servers].split(',')
       @user = params[:user]
       @password = params[:password] || ''
-      logger.level = params[:logger_level] || Logger::INFO
+
+      if params[:logger]
+        @logger = params[:logger]
+      else
+        logger.level = params[:logger_level] || Logger::INFO
+      end
 
       if params[:command]
         @flat_commands = params[:command]
