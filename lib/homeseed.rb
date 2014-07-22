@@ -58,7 +58,9 @@ module Homeseed
       Hash[@servers.map do |server|
         logger.info "ssh #{@user}@#{server} exec: #{@flat_commands}"
 
-        exit_status = 0
+        exit_status = nil
+        exit_signal = nil
+
         Net::SSH.start(server, @user, password: @password) do |ssh|
           ssh.open_channel do |channel|
             channel.exec("bash -l") do |ch,success|
@@ -86,11 +88,16 @@ module Homeseed
               ch.on_request("exit-status") do |c,data|
                 exit_status = data.read_long
               end
+
+              ch.on_request("exit-signal") do |c,data|
+                exit_signal = data.read_long
+              end
+
               ch.send_data "exit\n"
             end
           end
         end
-        [server, { exit_status: exit_status }]
+        [server, { exit_status: exit_status, exit_signal: exit_signal }]
       end]
     end
 
