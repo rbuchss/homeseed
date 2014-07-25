@@ -5,21 +5,23 @@ require 'thor'
 
 module Homeseed
   class HomeseedCliApp < Thor
-    desc 'exec [-e <command> or -f <files>] [-u <user>]',
+    desc 'exec [-e <command> or -f <files>] [-u <user>] [-p <has_password>]',
       'executes bash login session(s) on remote servers to run inline bash commands or bash commands from yml file'
     method_option :servers, required: true, aliases: '-s', desc: 'ssh hostname(s); csv if multiple'
     method_option :command, aliases: '-e', desc: 'bash command to exec'
     method_option :files, aliases: '-f', desc: 'yml bash command file(s) to exec'
     method_option :user, aliases: '-u', desc: 'ssh username', default: ENV['USER']
+    method_option :has_password, aliases: '-p', type: :boolean, default: false, desc: 'connection uses password; no ssh keys'
     def exec
       connection = Homeseed::Connection.new options
       connection.ssh_exec
     end
 
-    desc 'plant [-u <user>]',
+    desc 'plant [-u <user>] [-p <has_password>]',
       'installs homeshick and then dot profile based on localhost $HOME/.homeseed.yml'
-    method_option :servers, required: true, aliases: '-s', desc: 'ssh hostname(s); csv if multiple'
+    method_option :servers, required: true, aliases: '-s', desc: 'ssh hostname(s) or localhost; csv if multiple'
     method_option :user, aliases: '-u', desc: 'ssh username', default: ENV['USER']
+    method_option :has_password, aliases: '-p', type: :boolean, default: false, desc: 'connection uses password; no ssh keys'
     def plant
       config_files = %w(homeshick-prep.yml homeshick-install.yml homeshick-source.yml)
       files = config_files.map { |file| File.expand_path("../../config/#{file}", __FILE__) }
@@ -28,10 +30,11 @@ module Homeseed
       connection.ssh_exec
     end
 
-    desc 'update [-u <user>]',
+    desc 'update [-u <user>] [-p <has_password>]',
       'updates dot profile based on localhost $HOME/.homeup.yml'
     method_option :servers, required: true, aliases: '-s', desc: 'ssh hostname(s); csv if multiple'
     method_option :user, aliases: '-u', desc: 'ssh username', default: ENV['USER']
+    method_option :has_password, aliases: '-p', type: :boolean, default: false, desc: 'connection uses password; no ssh keys'
     def update
       config_files = %w(homeshick-source.yml)
       files = config_files.map { |file| File.expand_path("../../config/#{file}", __FILE__) }
@@ -40,12 +43,13 @@ module Homeseed
       connection.ssh_exec
     end
 
-    desc 'upload [-f <upload_files>] [-p <remote_path>] [-u <user>]',
+    desc 'upload [-f <upload_files>] [-r <remote_path>] [-u <user>] [-p <has_password>]',
       'scp uploads file(s) to remote servers'
     method_option :servers, required: true, aliases: '-s', desc: 'ssh hostname(s); csv if multiple'
     method_option :upload_files, aliases: '-f', desc: 'file(s) to upload to server(s)'
-    method_option :remote_path, aliases: '-p', desc: 'path to upload to server(s)'
+    method_option :remote_path, aliases: '-r', desc: 'path to upload to server(s)'
     method_option :user, aliases: '-u', desc: 'ssh username', default: ENV['USER']
+    method_option :has_password, aliases: '-p', type: :boolean, default: false, desc: 'connection uses password; no ssh keys'
     def upload
       connection = Homeseed::Connection.new options
       connection.scp_upload

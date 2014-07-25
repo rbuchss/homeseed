@@ -23,4 +23,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'net-ssh', '~> 2.6'
   spec.add_dependency 'net-scp', '~> 1.1'
   spec.add_dependency 'thor', '~> 0.19'
+  spec.add_dependency 'highline', '~> 1.6'
 end
