@@ -1,7 +1,7 @@
 # Homeseed
 
-CLI for config/dot-profile deployments
-also is a bash login session command flattener for remote ssh exec
+CLI for managing system configs and dot-profiles
+can be used for initializations, deployments and updates on remotes or localhost
 
 ## Installation
 
@@ -21,17 +21,26 @@ Or install it yourself as:
 
 homeseed commands
 ```
-➜ homeseed help
+$ homeseed
 Commands:
-  homeseed exec [-e <command> or -f <files>] [-u <user>] -s, --servers=SERVERS  # executes bash login session(s) on remote servers to run inline bash commands or bash commands from yml file
-  homeseed help [COMMAND]                                                       # Describe available commands or one specific command
-  homeseed plant [-u <user>] -s, --servers=SERVERS                              # installs homeshick and then dot profile based on localhost $HOME/.homeseed.yml
-  homeseed update [-u <user>] -s, --servers=SERVERS                             # updates dot profile based on localhost $HOME/.homeup.yml
+  homeseed exec [-e <command> or -f <files>] [-u <user>] [-p <has_password>] -s, --servers=SERVERS              # executes bash login session(s) on remote servers to run inline bash commands or bash ...
+  homeseed help [COMMAND]                                                                                       # Describe available commands or one specific command
+  homeseed plant [-u <user>] [-p <has_password>] [-c <clean>] [--url <url>] -s, --servers=SERVERS               # installs homeshick and then dot profile based on localhost $HOME/.homeseed.yml or url...
+  homeseed update [-u <user>] [-p <has_password>] [--url <url>] -s, --servers=SERVERS                           # updates dot profile based on localhost $HOME/.homeup.yml or url with yml commands
+  homeseed upload [-f <upload_files>] [-r <remote_path>] [-u <user>] [-p <has_password>] -s, --servers=SERVERS  # scp uploads file(s) to remote servers
 ```
 
-to install dot profile on csv server list run; uses $HOME/.homeseed.yml
+to distribute and install your dot profile(s) on multiple of servers run
 ```
-homeseed plant -s blackberry,blueberry,raspberry
+$ homeseed plant -s blackberry,blueberry,raspberry
+```
+this uses localhost's $HOME/.homeseed.yml by default; a url can given instead
+```
+$ homeseed plant -s pom --url 'i_am_a_homeseed.yml_file'
+```
+localhost can be specified as the target for system initialization
+```
+$ homeseed exec -s localhost --url 'setup_bluez_mupen_and_such.yml'
 ```
 
 ex $HOME/.homeseed.yml
@@ -45,9 +54,13 @@ homeshick:
     - vim-4-eva --force
 ```
 
-to update run; uses $HOME/.homeup.yml
+to update run; uses $HOME/.homeup.yml (same url based overrides apply here as well)
 ```
-homeseed update -s soho
+$ homeseed update -s soho
+```
+localhost can be specified here as well
+```
+$ homeseed update -s localhost
 ```
 
 ex $HOME/.homeup.yml

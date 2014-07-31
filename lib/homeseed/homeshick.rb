@@ -37,7 +37,7 @@ module Homeseed
 
     def exec(params={})
       fetch_user_config(params)
-      ssh_exec
+      super
     end
   end
 end

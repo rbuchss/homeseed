@@ -14,7 +14,7 @@ module Homeseed
     method_option :has_password, aliases: '-p', type: :boolean, default: false, desc: 'connection uses password; no ssh keys'
     def exec
       connection = Homeseed::Connection.new options
-      connection.ssh_exec
+      connection.exec
     end
 
     desc 'upload [-f <upload_files>] [-r <remote_path>] [-u <user>] [-p <has_password>]',

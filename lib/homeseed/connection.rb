@@ -79,6 +79,25 @@ module Homeseed
       end
     end
 
+    def exec(params={})
+      if @servers.include?('localhost')
+        local_exec
+      else
+        ssh_exec
+      end
+    end
+
+    def local_exec
+      commands = @commands.join('; ') + ';'
+      @logger.info "localhost exec: #{commands}"
+
+      IO.popen("#{commands}") do |chunks|
+        chunks.each do |line|
+          log_exec(line)
+        end
+      end
+    end
+
     def ssh_exec
       Hash[@servers.map do |server|
         commands = @commands.join('; ') + ';'
@@ -93,11 +112,11 @@ module Homeseed
               ch.send_data "#{commands}\n"
 
               ch.on_data do |c,data|
-                log_ssh_data(data)
+                log_exec(data)
               end
 
               ch.on_extended_data do |c,type,data|
-                log_ssh_data(data)
+                log_exec(data)
               end
 
               ch.on_request("exit-status") do |c,data|
@@ -116,7 +135,7 @@ module Homeseed
       end]
     end
 
-    def log_ssh_data(data)
+    def log_exec(data)
       data_lines = data.split(/[\r,\n]/)
       data_lines.each do |data_line|
         unless data_line == ''
@@ -130,6 +149,7 @@ module Homeseed
     end
 
     def scp_upload
+      raise ConnectionError, 'cannot scp to localhost' if @servers.include?('localhost')
       @servers.each do |server|
         @upload_files.each do |upload_file|
           @logger.info "starting scp #{upload_file} #{@user}@#{server}:#{@remote_path}"
