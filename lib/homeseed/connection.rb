@@ -1,11 +1,14 @@
 module Homeseed
   class Connection
     include Logging
+    attr_reader :servers, :user, :has_password
 
     def initialize(params={})
-      raise 'servers and/or user not specified' unless params[:servers] and params[:user]
+      raise ConnectionError, 'servers and/or user not specified' unless params[:servers] and params[:user]
       @servers = params[:servers].split(',')
       @user = params[:user]
+      @commands = []
+      @logger = params[:logger] || logger
 
       if params[:has_password]
         cli = HighLine.new
@@ -14,29 +17,52 @@ module Homeseed
         @password = params[:password] || ''
       end
 
-      if params[:logger]
-        @logger = params[:logger]
-      else
-        logger.level = params[:logger_level] || Logger::INFO
-      end
+      push_commands(params)
+    end
 
+    def push_commands(params={})
       if params[:command]
-        @flat_commands = params[:command]
+        @commands.push(*params[:command])
       elsif params[:files]
-        @files = params[:files].split(',')
-        @flat_commands = ''
-        @files.each do |file|
-          yml_commands = YAML.load_file(file)
-          commands = []
-          self.process_hash(commands, '', yml_commands)
-          @flat_commands += commands.join('; ') + ';'
-        end
+        push_bash_files(params[:files])
+      elsif params[:file]
+        push_bash_file(params[:file])
+      elsif params[:url]
+        push_url_commands(params[:url])
       elsif params[:upload_files]
         @remote_path = params[:remote_path] || '/tmp/'
         @upload_files = params[:upload_files].split(',')
-      else
-        raise 'ERROR command, files or upload_files not specified'
       end
+    end
+
+    def config_file_path(file)
+      File.expand_path("../../../config/#{file}", __FILE__)
+    end
+
+    def push_bash_files(files)
+      @files = files
+      @files.each do |file|
+        push_bash_file(file)
+      end
+    end
+
+    def push_bash_file(file)
+      @file = file
+      yml_commands = YAML.load_file(file)
+      push_yml_commands(yml_commands)
+    end
+
+    def push_url_commands(url)
+      response =  HTTParty.get(url)
+      raise HTTPartyError unless response.code == 200
+      yml_commands = YAML.load(response.body)
+      push_yml_commands(yml_commands)
+    end
+
+    def push_yml_commands(yml_commands)
+      commands = []
+      self.process_hash(commands, '', yml_commands)
+      @commands.push(*commands)
     end
 
     def process_hash(commands, current_key, obj)
@@ -55,7 +81,8 @@ module Homeseed
 
     def ssh_exec
       Hash[@servers.map do |server|
-        logger.info "ssh #{@user}@#{server} exec: #{@flat_commands}"
+        commands = @commands.join('; ') + ';'
+        @logger.info "ssh #{@user}@#{server} exec: #{commands}"
 
         exit_status = nil
         exit_signal = nil
@@ -63,25 +90,14 @@ module Homeseed
         Net::SSH.start(server, @user, password: @password) do |ssh|
           ssh.open_channel do |channel|
             channel.exec("bash -l") do |ch,success|
-              ch.send_data "#{@flat_commands}\n"
+              ch.send_data "#{commands}\n"
+
               ch.on_data do |c,data|
-                data_lines = data.split(/[\r,\n]/)
-                data_lines.each do |data_line|
-                  logger.info data_line unless data_line == ''
-                end
+                log_ssh_data(data)
               end
 
               ch.on_extended_data do |c,type,data|
-                data_lines = data.split(/[\r,\n]/)
-                data_lines.each do |data_line|
-                  unless data_line == ''
-                    if data_line.match(/error|failed/i)
-                      logger.error data_line
-                    else
-                      logger.info data_line
-                    end
-                  end
-                end
+                log_ssh_data(data)
               end
 
               ch.on_request("exit-status") do |c,data|
@@ -100,15 +116,28 @@ module Homeseed
       end]
     end
 
+    def log_ssh_data(data)
+      data_lines = data.split(/[\r,\n]/)
+      data_lines.each do |data_line|
+        unless data_line == ''
+          if data_line.match(/error|failed|fatal/i)
+            @logger.error data_line
+          else
+            @logger.info data_line
+          end
+        end
+      end
+    end
+
     def scp_upload
       @servers.each do |server|
         @upload_files.each do |upload_file|
-          logger.info "starting scp #{upload_file} #{@user}@#{server}:#{@remote_path}"
+          @logger.info "starting scp #{upload_file} #{@user}@#{server}:#{@remote_path}"
           begin
             Net::SCP.start(server, @user) { |scp| scp.upload!(upload_file, @remote_path) }
-            logger.info "finished scp #{upload_file} #{@user}@#{server}:#{@remote_path}"
+            @logger.info "finished scp #{upload_file} #{@user}@#{server}:#{@remote_path}"
           rescue => err
-            logger.error "scp FAILED #{err}"
+            @logger.error "scp FAILED #{err}"
           end
         end
       end

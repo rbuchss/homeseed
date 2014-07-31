@@ -24,4 +24,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'net-scp', '~> 1.1'
   spec.add_dependency 'thor', '~> 0.19'
   spec.add_dependency 'highline', '~> 1.6'
+  spec.add_dependency 'httparty', '~> 0.11'
 end

@@ -17,32 +17,6 @@ module Homeseed
       connection.ssh_exec
     end
 
-    desc 'plant [-u <user>] [-p <has_password>]',
-      'installs homeshick and then dot profile based on localhost $HOME/.homeseed.yml'
-    method_option :servers, required: true, aliases: '-s', desc: 'ssh hostname(s) or localhost; csv if multiple'
-    method_option :user, aliases: '-u', desc: 'ssh username', default: ENV['USER']
-    method_option :has_password, aliases: '-p', type: :boolean, default: false, desc: 'connection uses password; no ssh keys'
-    def plant
-      config_files = %w(homeshick-prep.yml homeshick-install.yml homeshick-source.yml)
-      files = config_files.map { |file| File.expand_path("../../config/#{file}", __FILE__) }
-      files << File.expand_path('.homeseed.yml', ENV['HOME'])
-      connection = Homeseed::Connection.new options.merge(files: files.join(','))
-      connection.ssh_exec
-    end
-
-    desc 'update [-u <user>] [-p <has_password>]',
-      'updates dot profile based on localhost $HOME/.homeup.yml'
-    method_option :servers, required: true, aliases: '-s', desc: 'ssh hostname(s); csv if multiple'
-    method_option :user, aliases: '-u', desc: 'ssh username', default: ENV['USER']
-    method_option :has_password, aliases: '-p', type: :boolean, default: false, desc: 'connection uses password; no ssh keys'
-    def update
-      config_files = %w(homeshick-source.yml)
-      files = config_files.map { |file| File.expand_path("../../config/#{file}", __FILE__) }
-      files << File.expand_path('.homeup.yml', ENV['HOME'])
-      connection = Homeseed::Connection.new options.merge(files: files.join(','))
-      connection.ssh_exec
-    end
-
     desc 'upload [-f <upload_files>] [-r <remote_path>] [-u <user>] [-p <has_password>]',
       'scp uploads file(s) to remote servers'
     method_option :servers, required: true, aliases: '-s', desc: 'ssh hostname(s); csv if multiple'
@@ -53,6 +27,29 @@ module Homeseed
     def upload
       connection = Homeseed::Connection.new options
       connection.scp_upload
+    end
+
+    desc 'plant [-u <user>] [-p <has_password>] [-c <clean>] [--url <url>]',
+      'installs homeshick and then dot profile based on localhost $HOME/.homeseed.yml or url with yml commands'
+    method_option :servers, required: true, aliases: '-s', desc: 'ssh hostname(s) or localhost; csv if multiple'
+    method_option :user, aliases: '-u', desc: 'ssh username', default: ENV['USER']
+    method_option :has_password, aliases: '-p', type: :boolean, default: false, desc: 'connection uses password; no ssh keys'
+    method_option :clean, type: :boolean, default: true, desc: 'clean install toogle'
+    method_option :url, desc: "url to use vs file default: #{ENV['HOME']}/.homeseed.yml"
+    def plant
+      homeshick = Homeseed::Homeshick.new options
+      homeshick.install options
+    end
+
+    desc 'update [-u <user>] [-p <has_password>] [--url <url>]',
+      'updates dot profile based on localhost $HOME/.homeup.yml or url with yml commands'
+    method_option :servers, required: true, aliases: '-s', desc: 'ssh hostname(s); csv if multiple'
+    method_option :user, aliases: '-u', desc: 'ssh username', default: ENV['USER']
+    method_option :has_password, aliases: '-p', type: :boolean, default: false, desc: 'connection uses password; no ssh keys'
+    method_option :url, desc: "url to use vs file default: #{ENV['HOME']}/.homeup.yml"
+    def update
+      homeshick = Homeseed::Homeshick.new options
+      homeshick.update options
     end
   end
   HomeseedCliApp.start
