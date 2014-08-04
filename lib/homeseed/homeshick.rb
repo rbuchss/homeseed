@@ -2,9 +2,15 @@ module Homeseed
   class Homeshick < Connection
     include Logging
 
+    EXEC_PATH = '$HOME/.homesick/repos/homeshick/bin/homeshick '
+
+    def initialize(params={})
+      super
+      @commands = []
+    end
+
     def install(params={})
       @config_files = Array[config_file_path('homeshick-install.yml')]
-      @config_files.push(config_file_path('homeshick-source.yml'))
       @config_files.unshift(config_file_path('homeshick-prep.yml')) if params[:clean]
       push_commands(files: @config_files)
       if params[:url]
@@ -15,8 +21,6 @@ module Homeseed
     end
 
     def update(params={})
-      @config_files = Array[config_file_path('homeshick-source.yml')]
-      push_commands(files: @config_files)
       fetch_user_config(params)
       if params[:url]
         exec(params.merge(user_config: :url))
@@ -33,6 +37,7 @@ module Homeseed
         file = File.expand_path(params[:file], ENV['HOME'])
         push_commands(file: file)
       end
+      @commands.map! { |command| command.gsub(/^homeshick /, EXEC_PATH) }
     end
 
     def exec(params={})

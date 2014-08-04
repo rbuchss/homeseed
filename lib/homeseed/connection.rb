@@ -91,8 +91,12 @@ module Homeseed
       commands = @commands.join('; ') + ';'
       @logger.info "localhost exec: #{commands}"
 
-      IO.popen("#{commands}") do |chunks|
-        chunks.each do |line|
+      Open3.popen2e('/bin/bash') do |stdin, stdout_err, wait_thr|
+        @commands.each do |command|
+          stdin.puts(command)
+        end
+        stdin.close
+        while line = stdout_err.gets
           log_exec(line)
         end
       end

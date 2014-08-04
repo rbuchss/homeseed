@@ -1,5 +1,6 @@
 require 'homeseed/version'
 require 'logger'
+require 'open3'
 require 'net/ssh'
 require 'net/scp'
 require 'yaml'

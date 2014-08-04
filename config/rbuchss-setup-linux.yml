@@ -1,9 +1,0 @@
-sudo:
-  apt-get:
-    update:
-      - -y
-    install:
-      - ack-grep -y
-      - lynx -y
-      - tree -y
-      - vim -y
