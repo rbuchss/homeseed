@@ -30,7 +30,7 @@ module Homeseed
     end
 
     desc 'plant [-u <user>] [-p <has_password>] [-c <clean>] [--url <url>]',
-      'installs homeshick and then dot profile based on localhost $HOME/.homeseed.yml or url with yml commands'
+      'installs homeshick and then dot profile based on localhost $HOME/.homeseed.yml or compatible url'
     method_option :servers, required: true, aliases: '-s', desc: 'ssh hostname(s) or localhost; csv if multiple'
     method_option :user, aliases: '-u', desc: 'ssh username', default: ENV['USER']
     method_option :has_password, aliases: '-p', type: :boolean, default: false, desc: 'connection uses password; no ssh keys'
@@ -42,11 +42,11 @@ module Homeseed
     end
 
     desc 'update [-u <user>] [-p <has_password>] [--url <url>]',
-      'updates dot profile based on localhost $HOME/.homeup.yml or url with yml commands'
+      'updates dot profile based on localhost $HOME/.homeseed.yml or compatible url'
     method_option :servers, required: true, aliases: '-s', desc: 'ssh hostname(s); csv if multiple'
     method_option :user, aliases: '-u', desc: 'ssh username', default: ENV['USER']
     method_option :has_password, aliases: '-p', type: :boolean, default: false, desc: 'connection uses password; no ssh keys'
-    method_option :url, desc: "url to use vs file default: #{ENV['HOME']}/.homeup.yml"
+    method_option :url, desc: "url to use vs file default: #{ENV['HOME']}/.homeseed.yml"
     def update
       homeshick = Homeseed::Homeshick.new options
       homeshick.update options

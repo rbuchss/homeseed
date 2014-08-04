@@ -26,7 +26,7 @@ Commands:
   homeseed exec [-e <command> or -f <files>] [-u <user>] [-p <has_password>] -s, --servers=SERVERS              # executes bash login session(s) on remote servers to run inline bash commands or bash ...
   homeseed help [COMMAND]                                                                                       # Describe available commands or one specific command
   homeseed plant [-u <user>] [-p <has_password>] [-c <clean>] [--url <url>] -s, --servers=SERVERS               # installs homeshick and then dot profile based on localhost $HOME/.homeseed.yml or url...
-  homeseed update [-u <user>] [-p <has_password>] [--url <url>] -s, --servers=SERVERS                           # updates dot profile based on localhost $HOME/.homeup.yml or url with yml commands
+  homeseed update [-u <user>] [-p <has_password>] [--url <url>] -s, --servers=SERVERS                           # updates dot profile based on localhost $HOME/.homeseed.yml or url with yml commands
   homeseed upload [-f <upload_files>] [-r <remote_path>] [-u <user>] [-p <has_password>] -s, --servers=SERVERS  # scp uploads file(s) to remote servers
 ```
 
