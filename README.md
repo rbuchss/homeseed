@@ -35,6 +35,7 @@ to distribute and install your dot profile(s) on multiple of servers run
 $ homeseed plant -s blackberry,blueberry,raspberry
 ```
 this uses your user's local $HOME/.homeseed.yml by default; a url can be given instead to override this
+(also supports post install bash hooks; see example user config below)
 ```bash
 $ homeseed plant -s pom --url 'i_am_a_homeseed.yml_file'
 ```
@@ -59,6 +60,8 @@ ex user config ($HOME/.homeseed.yml)
     :origin: https://github.com/rbuchss/terminator.git
   vim-4-eva:
     :origin: https://github.com/rbuchss/vim-4-eva.git
+:post_install:
+  ln: -s /opt/soho $HOME
 ```
 
 ## Contributing
