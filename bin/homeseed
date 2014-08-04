@@ -34,7 +34,7 @@ module Homeseed
     method_option :servers, required: true, aliases: '-s', desc: 'ssh hostname(s) or localhost; csv if multiple'
     method_option :user, aliases: '-u', desc: 'ssh username', default: ENV['USER']
     method_option :has_password, aliases: '-p', type: :boolean, default: false, desc: 'connection uses password; no ssh keys'
-    method_option :clean, type: :boolean, default: true, desc: 'clean install toogle'
+    method_option :clean, alias: '-c', type: :boolean, default: false, desc: 'clean install toogle'
     method_option :url, desc: "url to use vs file default: #{ENV['HOME']}/.homeseed.yml"
     def plant
       homeshick = Homeseed::Homeshick.new options

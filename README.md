@@ -20,7 +20,7 @@ Or install it yourself as:
 ## Usage
 
 homeseed commands
-```
+```bash
 $ homeseed
 Commands:
   homeseed exec [-e <command> or -f <files>] [-u <user>] [-p <has_password>] -s, --servers=SERVERS              # executes bash login session(s) on remote servers to run inline bash commands or bash ...
@@ -31,46 +31,34 @@ Commands:
 ```
 
 to distribute and install your dot profile(s) on multiple of servers run
-```
+```bash
 $ homeseed plant -s blackberry,blueberry,raspberry
 ```
-this uses localhost's $HOME/.homeseed.yml by default; a url can given instead
-```
+this uses your user's local $HOME/.homeseed.yml by default; a url can be given instead to override this
+```bash
 $ homeseed plant -s pom --url 'i_am_a_homeseed.yml_file'
 ```
 localhost can be specified as the target for system initialization
-```
+```bash
 $ homeseed exec -s localhost --url 'setup_bluez_mupen_and_such.yml'
 ```
 
-ex $HOME/.homeseed.yml
-```
-homeshick:
-  clone:
-    - https://github.com/rbuchss/terminator.git --batch
-    - https://github.com/rbuchss/vim-4-eva.git --batch
-  link:
-    - terminator --force
-    - vim-4-eva --force
-```
-
-to update run; uses $HOME/.homeup.yml (same url based overrides apply here as well)
-```
+to update run; uses $HOME/.homeseed.yml by default (same url based overrides apply here as well)
+```bash
 $ homeseed update -s soho
 ```
 localhost can be specified here as well
-```
+```bash
 $ homeseed update -s localhost
 ```
 
-ex $HOME/.homeup.yml
-```
-homeshick:
-  pull:
-    - --force --batch
-  link:
-    - terminator --force
-    - vim-4-eva --force
+ex user config ($HOME/.homeseed.yml)
+```ruby
+:repos:
+  terminator:
+    :origin: https://github.com/rbuchss/terminator.git
+  vim-4-eva:
+    :origin: https://github.com/rbuchss/vim-4-eva.git
 ```
 
 ## Contributing

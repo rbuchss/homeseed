@@ -71,11 +71,13 @@ module Homeseed
           combined_key = [current_key, new_key].delete_if { |k| k == '' }.join(" ")
           process_hash(commands, combined_key, value)
         end
-      else obj.is_a?(Array)
+      elsif obj.is_a?(Array)
         obj.each do |value|
           combined_key = [current_key, value].delete_if { |k| k == '' }.join(" ")
           commands << combined_key
         end
+      else
+        commands
       end
     end
 
