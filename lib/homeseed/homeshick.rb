@@ -18,6 +18,7 @@ module Homeseed
         "#{EXEC_PATH} clone #{repo_meta[:origin]} --batch && #{EXEC_PATH} symlink #{repo_name} --force"
       end
       push_commands(command: user_commands)
+      push_yml_commands(@user_config[:post_install]) if @user_config[:post_install]
       exec
     end
 

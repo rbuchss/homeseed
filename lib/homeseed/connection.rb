@@ -77,7 +77,8 @@ module Homeseed
           commands << combined_key
         end
       else
-        commands
+        combined_key = [current_key, obj].delete_if { |k| k == '' }.join(" ")
+        commands << combined_key
       end
     end
 
